@@ -1,0 +1,44 @@
+services:
+  # Backend API Service
+  - type: web
+    name: fixit-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://fixitnow-rho.vercel.app
+      - key: CORS_ORIGINS
+        value: https://fixitnow-rho.vercel.app,https://fixit-37b4.onrender.com
+      - key: RENDER
+        value: true
+      - key: PORT
+        value: 5000
+    # Add your environment variables here
+    # - key: MONGODB_URI
+    #   value: your_mongodb_connection_string
+    # - key: JWT_SECRET
+    #   value: your_jwt_secret
+    # - key: RAZORPAY_KEY_ID
+    #   value: your_razorpay_key_id
+    # - key: RAZORPAY_KEY_SECRET
+    #   value: your_razorpay_key_secret
+
+  # Frontend Static Site
+  - type: static
+    name: fixit-frontend
+    buildCommand: npm install && npm run build:render
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://fixit-37b4.onrender.com/api
+      - key: VITE_ENVIRONMENT
+        value: production
+    # Add your frontend environment variables here
+    # - key: VITE_GOOGLE_MAPS_API_KEY
+    #   value: your_google_maps_api_key
+    # - key: VITE_RAZORPAY_KEY_ID
+    #   value: your_razorpay_key_id

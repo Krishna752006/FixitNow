@@ -1,0 +1,179 @@
+// API Configuration
+import { API_BASE_URL } from '../config/environment';
+
+// [Previous type definitions remain the same until CreateJobData]
+
+// Add these new interfaces
+
+export interface ProfessionalAvailability {
+  professional: Professional;
+  available: boolean;
+  nextAvailable?: string;
+  rating?: number;
+  completedJobs?: number;
+  distance?: number;
+}
+
+export interface ProfessionalSearchParams {
+  service?: string;
+  location?: string;
+  date?: string;
+  time?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  radius?: number;
+  minRating?: number;
+  sortBy?: 'rating' | 'distance' | 'price';
+  page?: number;
+  limit?: number;
+}
+
+// Update CreateJobData to include preferredProfessional
+export interface CreateJobData {
+  title: string;
+  description: string;
+  category: string;
+  priority?: string;
+  location: {
+    address: string;
+    city: string;
+    state?: string;
+    zipCode?: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
+  scheduledDate: string;
+  scheduledTime: string;
+  estimatedDuration?: number;
+  budget?: {
+    min?: number;
+    max?: number;
+  };
+  finalPrice?: number;
+  preferredProfessional?: string; // ID of the preferred professional
+}
+
+// [Rest of your existing interfaces remain the same]
+
+// API Service Class
+class ApiService {
+  private baseURL: string;
+
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+  }
+
+  // [Previous methods remain the same until we add new ones]
+
+  // Professional-related methods
+  async searchProfessionals(params: ProfessionalSearchParams): Promise<{
+    success: boolean;
+    data: ProfessionalAvailability[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const queryParams = new URLSearchParams();
+    
+    // Add all non-undefined parameters to the query
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'coordinates' && value) {
+          queryParams.append('lat', value.lat.toString());
+          queryParams.append('lng', value.lng.toString());
+        } else if (Array.isArray(value)) {
+          value.forEach(v => queryParams.append(key, v));
+        } else if (value !== '') {
+          queryParams.append(key, String(value));
+        }
+      }
+    });
+
+    return this.request(`/professionals/search?${queryParams.toString()}`);
+  }
+
+  async getProfessionalById(id: string): Promise<{
+    success: boolean;
+    data: Professional;
+  }> {
+    return this.request(`/professionals/${id}`);
+  }
+
+  async getProfessionalAvailability(
+    professionalId: string, 
+    date: string, 
+    time?: string
+  ): Promise<{
+    success: boolean;
+    data: {
+      available: boolean;
+      nextAvailable?: string;
+      slots?: string[];
+    };
+  }> {
+    const params = new URLSearchParams({ date });
+    if (time) params.append('time', time);
+    
+    return this.request(`/professionals/${professionalId}/availability?${params.toString()}`);
+  }
+
+  // Favorites management
+  async getFavoriteProviders(): Promise<{
+    success: boolean;
+    data: Professional[];
+  }> {
+    return this.request('/users/me/favorites');
+  }
+
+  async addFavoriteProvider(professionalId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.request(`/users/me/favorites/${professionalId}`, {
+      method: 'POST',
+    });
+  }
+
+  async removeFavoriteProvider(professionalId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.request(`/users/me/favorites/${professionalId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async toggleFavoriteProvider(professionalId: string, isFavorite: boolean): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    if (isFavorite) {
+      return this.addFavoriteProvider(professionalId);
+    } else {
+      return this.removeFavoriteProvider(professionalId);
+    }
+  }
+
+  // [Rest of your existing methods remain the same]
+  
+  // Update the createJob method to include preferredProfessional
+  async createJob(jobData: CreateJobData): Promise<{
+    success: boolean;
+    data: Job;
+    message?: string;
+  }> {
+    return this.request('/jobs', {
+      method: 'POST',
+      body: JSON.stringify(jobData),
+    });
+  }
+}
+
+// Create and export API instance
+export const api = new ApiService(API_BASE_URL);
+
+// [Rest of your helper functions remain the same]
