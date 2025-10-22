@@ -32,11 +32,9 @@ if (process.env.NODE_ENV !== 'test') {
   connectDB();
 }
 
-
-// CORS configuration
 const allowedOrigins = environment.CORS_ORIGINS;
-console.log('🌐 Allowed CORS Origins:', allowedOrigins);
-console.log('🌍 Environment:', {
+console.log(' Allowed CORS Origins:', allowedOrigins);
+console.log(' Environment:', {
   NODE_ENV: environment.NODE_ENV,
   IS_PRODUCTION: environment.IS_PRODUCTION,
   IS_RENDER: environment.IS_RENDER,
@@ -45,22 +43,21 @@ console.log('🌍 Environment:', {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) {
-      console.log('✅ No origin - allowing (mobile/Postman)');
+      console.log(' No origin - allowing (mobile/Postman)');
       return callback(null, true);
     }
     
-    console.log('🔍 Checking origin:', origin);
-    console.log('📋 Allowed origins:', allowedOrigins);
+    console.log(' Checking origin:', origin);
+    console.log(' Allowed origins:', allowedOrigins);
     
     if (allowedOrigins.includes(origin)) {
-      console.log('✅ Origin allowed:', origin);
+      console.log(' Origin allowed:', origin);
       return callback(null, true);
     }
     
-    console.log('❌ Origin blocked:', origin);
-    console.log('💡 Tip: Add this origin to CORS_ORIGINS environment variable');
+    console.log(' Origin blocked:', origin);
+    console.log(' Tip: Add this origin to CORS_ORIGINS environment variable');
     return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
@@ -97,11 +94,10 @@ app.use('/uploads', express.static('uploads'));
 // Logging middleware
 app.use(morgan('combined'));
 
-// Request debugging middleware (only in production for troubleshooting)
 if (environment.IS_PRODUCTION) {
   app.use((req, res, next) => {
-    console.log(`📨 ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'None'}`);
-    console.log(`📋 Headers:`, {
+    console.log(` ${req.method} ${req.path} - Origin: ${req.get('Origin') || 'None'}`);
+    console.log(` Headers:`, {
       'content-type': req.get('Content-Type'),
       'authorization': req.get('Authorization') ? 'Present' : 'None',
       'user-agent': req.get('User-Agent')?.substring(0, 50) + '...'
@@ -110,7 +106,6 @@ if (environment.IS_PRODUCTION) {
   });
 }
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -127,7 +122,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Debug endpoint to check routes
 app.get('/api/debug/routes', (req, res) => {
   const routes = [];
   app._router.stack.forEach((middleware) => {
@@ -156,7 +150,6 @@ app.get('/api/debug/routes', (req, res) => {
   });
 });
 
-// CORS test endpoint
 app.get('/api/cors-test', (req, res) => {
   res.status(200).json({
     message: 'CORS is working correctly',
@@ -165,7 +158,6 @@ app.get('/api/cors-test', (req, res) => {
   });
 });
 
-// API routes
 console.log('🔗 Loading API routes...');
 try {
   app.use('/api/auth', authRoutes);

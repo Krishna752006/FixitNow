@@ -17,7 +17,6 @@ import { Progress } from '@/components/ui/progress';
 
 import JobStatusBadge from '@/components/JobStatusBadge';
 import EnhancedJobCard from '@/components/EnhancedJobCard';
-import SavedProfessionals from '@/components/SavedProfessionals';
 import PaymentMethods from '@/components/PaymentMethods';
 import RecentPayments from '@/components/RecentPayments';
 import PendingPayments from '@/components/PendingPayments';
@@ -588,7 +587,6 @@ const UserDashboard = () => {
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover-glow">Overview</TabsTrigger>
               <TabsTrigger value="book-service" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover-glow">Book Service</TabsTrigger>
               <TabsTrigger value="jobs" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover-glow">Jobs</TabsTrigger>
-              <TabsTrigger value="professionals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover-glow">Saved</TabsTrigger>
               <TabsTrigger value="previous" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover-glow">Previous</TabsTrigger>
               <TabsTrigger value="favorites" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover-glow">Favorites</TabsTrigger>
 
@@ -951,18 +949,6 @@ const UserDashboard = () => {
                 )}
               </TabsContent>
             </Tabs>
-          </TabsContent>
-
-          {/* Saved Professionals Tab */}
-          <TabsContent value="professionals" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Saved Professionals</h2>
-              <Button onClick={() => navigate('/professionals')}>
-                <Heart className="h-4 w-4 mr-2" />
-                Find More Pros
-              </Button>
-            </div>
-            <SavedProfessionals />
           </TabsContent>
 
           {/* Previous Professionals Tab */}

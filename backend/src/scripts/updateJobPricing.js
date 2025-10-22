@@ -87,7 +87,6 @@ const servicePricing = {
   'Air Quality Testing': 100,
   'Heat Pump Service': 110,
   
-  // Landscaping
   'Lawn Mowing': 40,
   'Garden Design': 150,
   'Tree Trimming': 100,
@@ -97,7 +96,6 @@ const servicePricing = {
   'Hedge Trimming': 70,
   'Leaf Removal': 60,
   
-  // Handyman
   'General Repairs': 60,
   'TV Mounting': 70,
   'Shelf Installation': 50,
@@ -110,17 +108,14 @@ const servicePricing = {
   'Minor Plumbing Fixes': 60,
   'Minor Plumbing': 55,
   
-  // Auto Repair
   'Oil Change': 50,
   'Brake Service': 120,
   'Battery Replacement': 80,
   
-  // Locksmith
   'Lock Installation': 70,
   'Key Duplication': 15,
   'Emergency Lockout': 100,
   
-  // Moving
   'Moving Service': 300,
   'Local Moving': 200,
   'Packing Service': 150,
@@ -132,23 +127,19 @@ const servicePricing = {
   'Home Organization': 110,
   'Assembly Service': 70,
   
-  // Pest Control
   'General Pest Control': 80,
   'Rodent Control': 100,
   'Termite Inspection': 60,
   
-  // Pet Care
   'Dog Walking': 25,
   'Pet Sitting': 50,
   'Pet Grooming': 60,
   
-  // Security
   'Security Camera Installation': 120,
   'Alarm System Setup': 150,
   'Smart Lock Installation': 100,
 };
 
-// Category-based fallback pricing (from pricing.ts)
 const categoryFallbackPricing = {
   'Plumbing': 1000,
   'Electrical': 1200,
@@ -174,7 +165,6 @@ async function updateJobPricing() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Get all jobs
     const jobs = await Job.find({});
     console.log(`\n📊 Found ${jobs.length} jobs to process\n`);
 
@@ -186,12 +176,10 @@ async function updateJobPricing() {
       let newPrice = null;
       let source = '';
 
-      // Try to match by exact title
       if (servicePricing[job.title]) {
         newPrice = servicePricing[job.title];
         source = 'exact title match';
       }
-      // Try to match by partial title (case insensitive)
       else {
         const titleLower = job.title.toLowerCase();
         const matchedKey = Object.keys(servicePricing).find(key => 
@@ -202,7 +190,6 @@ async function updateJobPricing() {
           newPrice = servicePricing[matchedKey];
           source = `partial match: "${matchedKey}"`;
         }
-        // Fallback to category pricing
         else if (categoryFallbackPricing[job.category]) {
           newPrice = categoryFallbackPricing[job.category];
           source = 'category fallback';
@@ -213,7 +200,6 @@ async function updateJobPricing() {
         const oldMin = job.budget?.min || 0;
         const oldMax = job.budget?.max || 0;
 
-        // Only update if the price is different
         if (oldMin !== newPrice || oldMax !== newPrice) {
           job.budget = {
             min: newPrice,

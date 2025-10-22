@@ -4,8 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import { Heart, Star, MapPin, Calendar, Wrench, Loader2 } from 'lucide-react';
+import ScheduleJobModal from '@/components/ScheduleJobModal';
+import ProfessionalServiceCards from '@/components/ProfessionalServiceCards';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FavoriteProfessional {
   _id: string;
@@ -31,6 +35,11 @@ const FavoriteProfessionals: React.FC = () => {
   const [favorites, setFavorites] = useState<FavoriteProfessional[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [showServiceDialog, setShowServiceDialog] = useState(false);
+  const [selectedProfessional, setSelectedProfessional] = useState<FavoriteProfessional | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadFavorites();
@@ -78,11 +87,21 @@ const FavoriteProfessionals: React.FC = () => {
     }
   };
 
-  const handleBookAgain = (professionalId: string) => {
-    // Navigate to booking with pre-selected professional
-    window.dispatchEvent(new CustomEvent('bookWithProfessional', { 
-      detail: { professionalId } 
-    }));
+  const handleBookAgain = (favorite: FavoriteProfessional) => {
+    setSelectedProfessional(favorite);
+    setShowServiceDialog(true);
+  };
+
+  const handleServiceSelect = (service: string) => {
+    setSelectedService(service);
+    setShowServiceDialog(false);
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleModalClose = () => {
+    setShowScheduleModal(false);
+    setSelectedService(null);
+    setSelectedProfessional(null);
   };
 
   if (isLoading) {
@@ -111,8 +130,9 @@ const FavoriteProfessionals: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
-      {favorites.map((favorite) => {
+    <>
+      <div className="space-y-4">
+        {favorites.map((favorite) => {
         const prof = favorite.professional;
         const initials = `${prof.firstName[0]}${prof.lastName[0]}`.toUpperCase();
 
@@ -203,7 +223,7 @@ const FavoriteProfessionals: React.FC = () => {
                   <div className="flex gap-2 mt-4">
                     <Button
                       size="sm"
-                      onClick={() => handleBookAgain(prof._id)}
+                      onClick={() => handleBookAgain(favorite)}
                       className="flex-1"
                     >
                       Book Again
@@ -224,8 +244,57 @@ const FavoriteProfessionals: React.FC = () => {
             </CardContent>
           </Card>
         );
-      })}
-    </div>
+        })}
+      </div>
+
+      {/* Service Selection Dialog */}
+      <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select a Service</DialogTitle>
+            <DialogDescription>
+              Choose a specific service you'd like to book with {selectedProfessional?.professional.firstName} {selectedProfessional?.professional.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedProfessional && (
+            <div className="py-4 space-y-6">
+              {selectedProfessional.professional.services.map((service, idx) => (
+                <div key={idx}>
+                  <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">{service} Services</h4>
+                  <ProfessionalServiceCards
+                    category={service}
+                    onSelectService={(selectedService) => {
+                      setSelectedService(selectedService.title);
+                      setShowServiceDialog(false);
+                      setShowScheduleModal(true);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Job Modal */}
+      {selectedService && selectedProfessional && (
+        <ScheduleJobModal
+          open={showScheduleModal}
+          onOpenChange={handleScheduleModalClose}
+          category={selectedService}
+          serviceName={selectedService}
+          user={user}
+          professionalId={selectedProfessional.professional._id}
+          onJobScheduled={() => {
+            handleScheduleModalClose();
+            toast({
+              title: "Job Scheduled!",
+              description: `Your ${selectedService} service has been scheduled with ${selectedProfessional.professional.firstName} ${selectedProfessional.professional.lastName}.`,
+            });
+          }}
+        />
+      )}
+    </>
   );
 };
 

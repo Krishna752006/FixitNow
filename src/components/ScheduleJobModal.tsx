@@ -20,6 +20,7 @@ interface ScheduleJobModalProps {
   user?: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  professionalId?: string;
 }
 
 const ScheduleJobModal: React.FC<ScheduleJobModalProps> = ({
@@ -30,7 +31,8 @@ const ScheduleJobModal: React.FC<ScheduleJobModalProps> = ({
   serviceDuration,
   user,
   open,
-  onOpenChange
+  onOpenChange,
+  professionalId
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
@@ -186,12 +188,21 @@ const ScheduleJobModal: React.FC<ScheduleJobModalProps> = ({
     try {
       setIsLoading(true);
 
-      const response = await api.scheduleJob(formData);
+      const jobData = {
+        ...formData,
+        ...(professionalId && { professionalId })
+      };
+
+      const response = await api.scheduleJob(jobData);
 
       if (response.success) {
+        const notificationMsg = professionalId 
+          ? `Job has been sent to the selected professional.`
+          : `Professionals in ${formData.location.city} will be notified. They can accept your job request.`;
+        
         toast({
           title: "Job Posted Successfully!",
-          description: `Professionals in ${formData.location.city} will be notified. They can accept your job request.`,
+          description: notificationMsg,
         });
         onJobScheduled?.();
 

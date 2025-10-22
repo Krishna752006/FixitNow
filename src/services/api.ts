@@ -278,6 +278,7 @@ export interface CreateJobData {
     max?: number;
   };
   finalPrice?: number;
+  professionalId?: string;
 }
 
 export interface ProfessionalStats {
