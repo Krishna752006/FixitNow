@@ -47,6 +47,7 @@ import PayoutHistory from '@/components/PayoutHistory';
 import ChatDialog from '@/components/ChatDialog';
 import ReviewsDisplay from '@/components/ReviewsDisplay';
 import Support from '@/components/Support';
+import Chatbot from '@/components/Chatbot';
 
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -2529,6 +2530,9 @@ const ProviderDashboard = () => {
           jobTitle={selectedChatJob.title}
         />
       )}
+
+      {/* AI Chatbot */}
+      <Chatbot />
     </div>
   );
 };

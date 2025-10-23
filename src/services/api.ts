@@ -185,6 +185,29 @@ export interface Job {
   completedAt?: string;
   rating?: number;
   review?: string;
+  statusHistory?: Array<{
+    status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
+    changedAt: string;
+    changedBy?: string;
+    changedByModel?: 'User' | 'Professional' | 'Admin';
+    notes?: string;
+  }>;
+  invoice?: {
+    number: string;
+    date: string;
+    items: Array<{
+      description: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>;
+    subtotal: number;
+    tax: number;
+    total: number;
+    status: 'pending' | 'paid' | 'overdue';
+    paymentMethod?: string;
+    notes?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -391,6 +414,36 @@ class ApiService {
       console.error('API request failed:', error);
       throw error;
     }
+  }
+
+  // Generic HTTP methods
+  async get<T = any>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  async post<T = any>(endpoint: string, body?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async patch<T = any>(endpoint: string, body?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async put<T = any>(endpoint: string, body?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async delete<T = any>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
   }
 
   // Health check

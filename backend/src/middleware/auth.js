@@ -137,6 +137,28 @@ export const requireVerifiedProfessional = (req, res, next) => {
   next();
 };
 
+// Middleware to check if user is admin
+export const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Access denied. Please authenticate first.',
+    });
+  }
+
+  if (!req.user.isAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Admin privileges required.',
+    });
+  }
+
+  next();
+};
+
+// Middleware to check if user is admin (alternative name)
+export const isAdmin = requireAdmin;
+
 // Optional authentication - doesn't fail if no token
 export const optionalAuth = async (req, res, next) => {
   try {

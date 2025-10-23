@@ -37,46 +37,47 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-muted/20">
+    <section className="py-24 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-6">
         {/* Trust Bar */}
-        <div className="text-center mb-16">
-          <p className="text-muted-foreground mb-8">Featured in</p>
+        <div className="text-center mb-20">
+          <p className="text-gray-600 mb-10 font-medium">Featured in</p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
             {companies.map((company, index) => (
-              <div key={index} className="flex items-center space-x-2 opacity-60 hover:opacity-100 transition-opacity">
-                <div className="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center">
-                  <span className="font-bold text-foreground text-sm">{company.logo}</span>
+              <div key={index} className="flex items-center space-x-2 opacity-60 hover:opacity-100 transition-opacity group">
+                <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                  <span className="font-bold text-gray-700 text-sm">{company.logo}</span>
                 </div>
-                <span className="font-medium text-foreground hidden sm:block">{company.name}</span>
+                <span className="font-semibold text-gray-700 hidden sm:block text-sm">{company.name}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+        <div className="text-center mb-20">
+          <span className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-4">Customer Reviews</span>
+          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
             Loved by{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
               Homeowners
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Join thousands of satisfied customers who trust FixItNow for all their home service needs.
           </p>
         </div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {testimonials.map((testimonial, index) => (
             <div 
               key={index} 
-              className="relative p-8 rounded-2xl bg-card border border-border hover-lift group overflow-hidden"
+              className="relative p-8 rounded-2xl bg-white border border-gray-200 hover:border-primary/50 hover:shadow-xl transition-all duration-300 group overflow-hidden"
             >
               {/* Quote Icon */}
-              <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-30 transition-opacity">
-                <Quote className="w-8 h-8 text-primary" />
+              <div className="absolute top-6 right-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Quote className="w-10 h-10 text-primary" />
               </div>
 
               {/* Rating */}
@@ -87,25 +88,25 @@ const TestimonialsSection = () => {
               </div>
 
               {/* Testimonial Text */}
-              <p className="text-foreground leading-relaxed mb-6 text-lg">
+              <p className="text-gray-800 leading-relaxed mb-6 text-base font-medium">
                 "{testimonial.text}"
               </p>
 
               {/* Service Badge */}
-              <div className="inline-block bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full mb-6">
+              <div className="inline-block bg-gradient-to-r from-primary/10 to-accent/10 text-primary text-xs font-semibold px-4 py-2 rounded-full mb-6 border border-primary/20">
                 {testimonial.service}
               </div>
 
               {/* Author */}
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 pt-4 border-t border-gray-100">
                 <img 
                   src={testimonial.avatar} 
                   alt={testimonial.name}
                   className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
                 />
                 <div>
-                  <div className="font-semibold text-foreground">{testimonial.name}</div>
-                  <div className="text-muted-foreground text-sm">{testimonial.role}</div>
+                  <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                  <div className="text-gray-600 text-sm">{testimonial.role}</div>
                 </div>
               </div>
             </div>
@@ -113,22 +114,22 @@ const TestimonialsSection = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 rounded-3xl p-12 border border-primary/10">
           <div className="p-6">
-            <div className="text-4xl font-bold text-primary mb-2">10,000+</div>
-            <div className="text-muted-foreground">Happy Customers</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">10,000+</div>
+            <div className="text-gray-600 font-medium">Happy Customers</div>
           </div>
           <div className="p-6">
-            <div className="text-4xl font-bold text-secondary mb-2">50+</div>
-            <div className="text-muted-foreground">Service Categories</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent mb-2">50+</div>
+            <div className="text-gray-600 font-medium">Service Categories</div>
           </div>
           <div className="p-6">
-            <div className="text-4xl font-bold text-accent mb-2">2,500+</div>
-            <div className="text-muted-foreground">Verified Professionals</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent mb-2">2,500+</div>
+            <div className="text-gray-600 font-medium">Verified Professionals</div>
           </div>
           <div className="p-6">
-            <div className="text-4xl font-bold text-primary mb-2">4.9★</div>
-            <div className="text-muted-foreground">Average Rating</div>
+            <div className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">4.9★</div>
+            <div className="text-gray-600 font-medium">Average Rating</div>
           </div>
         </div>
       </div>

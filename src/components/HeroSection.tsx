@@ -26,34 +26,35 @@ const HeroSection = () => {
       <div className="relative z-20 container mx-auto px-6 text-center">
         <div className="max-w-4xl mx-auto">
           {/* Trust Badge */}
-          <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 animate-fade-in">
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            <span className="text-white text-sm font-medium">Trusted by 10,000+ homeowners</span>
+          <div className="inline-flex items-center space-x-2 bg-white/15 backdrop-blur-md rounded-full px-6 py-3 mb-8 animate-fade-in border border-white/20">
+            <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
+            <span className="text-white text-sm font-semibold">Trusted by 10,000+ homeowners</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-slide-up">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6 animate-slide-up leading-tight">
             Your Home,{" "}
-            <span className="bg-gradient-to-r from-accent-light to-secondary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-300 via-accent to-secondary bg-clip-text text-transparent">
               Fixed.
-            </span>{" "}
-            Instantly.
+            </span>
+            <br />
+            <span className="text-white">Instantly.</span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-lg md:text-xl text-white/95 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-up font-light" style={{ animationDelay: '0.2s' }}>
             Connect with verified, professional service providers in minutes. From plumbing to electrical work, 
             we've got your home covered with trusted experts.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <Button variant="glow" size="xl" className="group">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.4s' }}>
+            <Button size="xl" className="group font-semibold shadow-xl hover:shadow-2xl transition-all px-8">
               Find a Service
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             
-            <Button variant="outline" size="xl" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-primary">
+            <Button variant="outline" size="xl" className="bg-white/10 backdrop-blur-md border-white/40 text-white hover:bg-white/20 font-semibold shadow-lg hover:shadow-xl transition-all px-8">
               <Play className="w-5 h-5" />
               Watch How It Works
             </Button>

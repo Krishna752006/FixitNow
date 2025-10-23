@@ -1,16 +1,56 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 import dynamicConfig from '../config/dynamicConfig.js';
+import * as adminController from '../controllers/adminController.js';
+import * as servicePricingController from '../controllers/servicePricingController.js';
 
 const router = express.Router();
 
-// @route   POST /api/admin/config/razorpay
-// @desc    Set Razorpay credentials dynamically
-// @access  Private (Admin only - for now, we'll allow any authenticated user)
+// PHASE 1: DASHBOARD
+router.get('/dashboard/stats', authenticate, requireAdmin, adminController.getDashboardStats);
+
+// PHASE 1: USER MANAGEMENT
+router.get('/users', authenticate, requireAdmin, adminController.getAllUsers);
+router.get('/users/:id', authenticate, requireAdmin, adminController.getUserById);
+router.patch('/users/:id/verify', authenticate, requireAdmin, adminController.updateUserVerification);
+router.patch('/users/:id/suspend', authenticate, requireAdmin, adminController.suspendUser);
+router.patch('/users/:id/reactivate', authenticate, requireAdmin, adminController.reactivateUser);
+
+// PHASE 1: JOB MONITORING
+router.get('/jobs', authenticate, requireAdmin, adminController.getAllJobs);
+router.get('/jobs/:id', authenticate, requireAdmin, adminController.getJobById);
+router.patch('/jobs/:id/reassign', authenticate, requireAdmin, adminController.reassignProfessional);
+
+// PHASE 2: SERVICE CONFIGURATION
+router.get('/services/categories', authenticate, requireAdmin, adminController.getServiceCategories);
+router.post('/services/categories', authenticate, requireAdmin, adminController.addServiceCategory);
+
+// PHASE 2: SERVICE PRICING MANAGEMENT
+router.get('/services/pricing', authenticate, requireAdmin, servicePricingController.getAllServicePrices);
+router.get('/services/pricing/:serviceName', authenticate, requireAdmin, servicePricingController.getServicePricesByCategory);
+router.post('/services/update-price', authenticate, requireAdmin, servicePricingController.updateServicePrice);
+router.post('/services/bulk-update-prices', authenticate, requireAdmin, servicePricingController.bulkUpdatePrices);
+router.get('/services/price-history/:serviceName/:subServiceTitle', authenticate, requireAdmin, servicePricingController.getPriceHistory);
+
+// PUBLIC: SERVICE PRICING (for user dashboard)
+router.get('/services/pricing', servicePricingController.getAllServicePrices);
+
+// PHASE 2: FINANCIAL MANAGEMENT
+router.get('/financial/transactions', authenticate, requireAdmin, adminController.getTransactionHistory);
+router.get('/financial/report', authenticate, requireAdmin, adminController.getFinancialReport);
+
+// PHASE 3: ANALYTICS
+router.get('/analytics/data', authenticate, requireAdmin, adminController.getAnalyticsData);
+
+// PHASE 3: AUDIT LOG
+router.get('/audit-log', authenticate, requireAdmin, adminController.getAuditLog);
+
+// LEGACY: Razorpay configuration endpoints
 router.post('/config/razorpay', [
   authenticate,
+  requireAdmin,
   body('keyId').trim().notEmpty().withMessage('Razorpay Key ID is required'),
   body('keySecret').trim().notEmpty().withMessage('Razorpay Key Secret is required'),
   validateRequest,
@@ -18,7 +58,6 @@ router.post('/config/razorpay', [
   try {
     const { keyId, keySecret } = req.body;
 
-    // Validate key format (basic validation)
     if (!keyId.startsWith('rzp_')) {
       return res.status(400).json({
         success: false,
@@ -26,7 +65,6 @@ router.post('/config/razorpay', [
       });
     }
 
-    // Set the credentials
     const success = dynamicConfig.setRazorpayCredentials(keyId, keySecret);
 
     if (success) {
@@ -53,13 +91,10 @@ router.post('/config/razorpay', [
   }
 });
 
-// @route   GET /api/admin/config/status
-// @desc    Get configuration status
-// @access  Private
-router.get('/config/status', authenticate, async (req, res) => {
+router.get('/config/status', authenticate, requireAdmin, async (req, res) => {
   try {
     const status = dynamicConfig.getStatus();
-    
+
     res.json({
       success: true,
       data: status
@@ -72,14 +107,10 @@ router.get('/config/status', authenticate, async (req, res) => {
     });
   }
 });
-
-// @route   DELETE /api/admin/config/razorpay
-// @desc    Reset Razorpay configuration
-// @access  Private
-router.delete('/config/razorpay', authenticate, async (req, res) => {
+router.delete('/config/razorpay', authenticate, requireAdmin, async (req, res) => {
   try {
     dynamicConfig.reset();
-    
+
     res.json({
       success: true,
       message: 'Razorpay configuration reset successfully'

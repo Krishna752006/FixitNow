@@ -29,6 +29,46 @@ const jobSchema = new mongoose.Schema({
     enum: ['pending', 'accepted', 'in_progress', 'completed', 'cancelled'],
     default: 'pending',
   },
+  statusHistory: [{
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'in_progress', 'completed', 'cancelled'],
+      required: true
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'statusHistory.changedByModel'
+    },
+    changedByModel: {
+      type: String,
+      enum: ['User', 'Professional', 'Admin']
+    },
+    notes: String
+  }],
+  invoice: {
+    number: String,
+    date: Date,
+    items: [{
+      description: String,
+      quantity: Number,
+      unitPrice: Number,
+      total: Number
+    }],
+    subtotal: Number,
+    tax: Number,
+    total: Number,
+    status: {
+      type: String,
+      enum: ['pending', 'paid', 'overdue'],
+      default: 'pending'
+    },
+    paymentMethod: String,
+    notes: String
+  },
 
   // User who posted the job
   user: {
@@ -338,13 +378,112 @@ jobSchema.virtual('durationFormatted').get(function() {
 
 // Method to check if job can be cancelled
 jobSchema.methods.canBeCancelled = function() {
-  return ['pending', 'accepted'].includes(this.status);
+  return ['pending', 'accepted', 'in_progress'].includes(this.status);
 };
 
 // Method to check if job can be rated
 jobSchema.methods.canBeRated = function() {
-  return this.status === 'completed' && !this.rating;
+  return this.status === 'completed';
 };
+
+// Method to update job status and record history
+jobSchema.methods.updateStatus = async function(newStatus, userId, userType, notes = '') {
+  if (!['pending', 'accepted', 'in_progress', 'completed', 'cancelled'].includes(newStatus)) {
+    throw new Error('Invalid status');
+  }
+  
+  const statusUpdate = {
+    status: newStatus,
+    changedBy: userId,
+    changedByModel: userType,
+    notes
+  };
+
+  this.status = newStatus;
+  this.statusHistory.push(statusUpdate);
+  
+  // If completing the job, generate invoice if not already exists
+  if (newStatus === 'completed' && !this.invoice?.number) {
+    await this.generateInvoice();
+  }
+  
+  await this.save();
+  return this;
+};
+
+// Method to generate invoice
+jobSchema.methods.generateInvoice = async function() {
+  if (this.status !== 'completed') {
+    throw new Error('Cannot generate invoice for incomplete job');
+  }
+  
+  if (this.invoice?.number) {
+    return this.invoice; // Invoice already exists
+  }
+  
+  const invoiceNumber = `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const taxRate = 0.18; // 18% GST
+  
+  // Get the actual booked amount - prioritize finalPrice, then fixedRate, then budget max
+  const bookedAmount = this.finalPrice || this.fixedRate || this.budget?.max || 0;
+  const tip = this.tipAmount || 0;
+  const serviceAmount = bookedAmount + tip;
+  
+  // Create invoice items based on job details
+  const items = [{
+    description: `${this.category} Service - ${this.title || 'Professional Service'}`,
+    quantity: 1,
+    unitPrice: bookedAmount,
+    total: bookedAmount
+  }];
+  
+  // Add tip as separate line item if present
+  if (tip > 0) {
+    items.push({
+      description: 'Tip Amount',
+      quantity: 1,
+      unitPrice: tip,
+      total: tip
+    });
+  }
+  
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+  
+  this.invoice = {
+    number: invoiceNumber,
+    date: new Date(),
+    items,
+    subtotal,
+    tax,
+    total,
+    status: 'pending',
+    paymentMethod: this.paymentMethod || 'Online',
+    notes: `Invoice for ${this.category} service completed on ${new Date().toLocaleDateString()}. Thank you for choosing our service!`
+  };
+  
+  await this.save();
+  return this.invoice;
+};
+
+// Add pre-save hook to initialize status history
+jobSchema.pre('save', function(next) {
+  if (this.isNew) {
+    this.statusHistory = [{
+      status: 'pending',
+      changedAt: new Date(),
+      notes: 'Job created'
+    }];
+  } else if (this.isModified('status')) {
+    this.statusHistory.push({
+      status: this.status,
+      changedAt: new Date(),
+      notes: `Status changed to ${this.status}`
+    });
+  }
+  next();
+});
 
 const Job = mongoose.model('Job', jobSchema);
 

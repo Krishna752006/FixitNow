@@ -17,6 +17,7 @@ const jobValidation = [
   body('scheduledDate').isISO8601().withMessage('Valid scheduled date is required'),
   body('scheduledTime').notEmpty().withMessage('Scheduled time is required'),
 ];
+
 // @route   POST /api/jobs
 // @desc    Create a new job
 // @access  Private (User only)
@@ -213,18 +214,28 @@ router.get('/pending-payment', authenticate, authorize('user'), async (req, res)
 
 // @route   GET /api/jobs/:id
 // @desc    Get single job details
-// @access  Private (User only)
-router.get('/:id', authenticate, authorize('user'), async (req, res) => {
+// @access  Private (User or Professional)
+router.get('/:id', authenticate, async (req, res) => {
   try {
-    const job = await Job.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    }).populate('professional', 'firstName lastName email phone rating.average services');
+    const job = await Job.findById(req.params.id)
+      .populate('professional', 'firstName lastName email phone rating.average services')
+      .populate('user', 'firstName lastName email phone');
 
     if (!job) {
       return res.status(404).json({
         success: false,
         message: 'Job not found',
+      });
+    }
+
+    // Authorization check - user must be job owner or assigned professional
+    const isJobOwner = job.user._id.toString() === req.user._id.toString();
+    const isAssignedProfessional = job.professional && job.professional._id.toString() === req.user._id.toString();
+
+    if (!isJobOwner && !isAssignedProfessional) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view this job',
       });
     }
 
@@ -414,7 +425,6 @@ router.post('/:id/cancel', authenticate, authorize('user'), async (req, res) => 
   }
 });
 
-
 // @route   POST /api/jobs/:id/rate
 // @desc    Rate completed job
 // @access  Private (User only)
@@ -538,6 +548,134 @@ router.get('/debug/location', authenticate, authorize('user'), async (req, res) 
       success: false,
       message: 'Error debugging location',
     });
+  }
+});
+
+// @route   PATCH /api/jobs/:id/status
+// @desc    Update job status
+// @access  Private (User or Professional)
+router.patch('/:id/status', [
+  authenticate,
+  param('id').isMongoId().withMessage('Invalid job ID'),
+  body('status')
+    .isIn(['pending', 'accepted', 'in_progress', 'completed', 'cancelled'])
+    .withMessage('Invalid status'),
+  body('notes').optional().isString().trim(),
+  validateRequest
+], async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Authorization check
+    if (req.user.role === 'professional' && !job.professional?.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to update this job' });
+    }
+
+    if (req.user.role === 'user' && !job.user.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to update this job' });
+    }
+
+    // Update status
+    await job.updateStatus(
+      req.body.status,
+      req.user._id,
+      req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1),
+      req.body.notes
+    );
+
+    // Create notification for the other party
+    const recipient = req.user.role === 'user' ? job.professional : job.user;
+    if (recipient) {
+      await Notification.create({
+        recipient,
+        recipientModel: req.user.role === 'user' ? 'Professional' : 'User',
+        type: 'job_status_update',
+        title: 'Job Status Updated',
+        message: `Job #${job._id} status changed to ${req.body.status}`,
+        referenceId: job._id,
+        referenceModel: 'Job'
+      });
+    }
+
+    res.json({ 
+      message: 'Job status updated successfully',
+      status: job.status,
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    console.error('Error updating job status:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   GET /api/jobs/:id/status-history
+// @desc    Get job status history
+// @access  Private (User or Professional)
+router.get('/:id/status-history', [
+  authenticate,
+  param('id').isMongoId().withMessage('Invalid job ID'),
+  validateRequest
+], async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id, 'statusHistory');
+    
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Authorization check
+    if (req.user.role === 'professional' && !job.professional?.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to view this job' });
+    }
+
+    if (req.user.role === 'user' && !job.user.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to view this job' });
+    }
+
+    res.json({ statusHistory: job.statusHistory });
+  } catch (error) {
+    console.error('Error fetching status history:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   POST /api/jobs/:id/generate-invoice
+// @desc    Generate invoice for completed job
+// @access  Private (User or Admin)
+router.post('/:id/generate-invoice', [
+  authenticate,
+  param('id').isMongoId().withMessage('Invalid job ID'),
+  validateRequest
+], async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Only allow users and admins to generate invoices
+    if (req.user.role !== 'admin' && !job.user.equals(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to generate invoice for this job' });
+    }
+
+    if (job.status !== 'completed') {
+      return res.status(400).json({ message: 'Cannot generate invoice for incomplete job' });
+    }
+
+    const invoice = await job.generateInvoice();
+    
+    res.json({ 
+      message: 'Invoice generated successfully',
+      invoice
+    });
+  } catch (error) {
+    console.error('Error generating invoice:', error);
+    res.status(500).json({ message: 'Error generating invoice', error: error.message });
   }
 });
 

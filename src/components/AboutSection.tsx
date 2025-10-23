@@ -26,35 +26,36 @@ const AboutSection = () => {
   ];
 
   return (
-    <section id="about" className="py-24 bg-muted/30">
+    <section id="about" className="py-24 bg-white">
       <div className="container mx-auto px-6">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+        <div className="text-center mb-20">
+          <span className="inline-block text-primary font-semibold text-sm uppercase tracking-widest mb-4">About Us</span>
+          <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
             About{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
               FixItNow
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             We're revolutionizing home services by connecting homeowners with trusted, verified professionals. 
             Our platform ensures quality, reliability, and peace of mind for every job.
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
           {stats.map((stat, index) => {
             const IconComponent = stat.icon;
             return (
               <div key={index} className="text-center group">
-                <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <IconComponent className="w-8 h-8 text-primary" />
+                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-6 group-hover:from-primary/20 group-hover:to-accent/20 transition-colors shadow-lg">
+                  <IconComponent className="w-9 h-9 text-primary" />
                 </div>
-                <div className="text-3xl font-bold text-foreground mb-2">
+                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
                   {stat.number}
                 </div>
-                <div className="text-muted-foreground">
+                <div className="text-gray-600 font-medium">
                   {stat.label}
                 </div>
               </div>
@@ -64,57 +65,57 @@ const AboutSection = () => {
 
         {/* Mission Statement */}
         <div className="max-w-4xl mx-auto">
-          <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-8 md:p-12 border border-border">
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
+          <div className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 rounded-3xl p-12 md:p-16 border border-primary/20 shadow-lg">
+            <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-6 text-center leading-tight">
               Our Mission
             </h3>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8 text-center">
+            <p className="text-lg text-gray-700 leading-relaxed mb-10 text-center font-medium">
               To make home maintenance and repairs stress-free by providing a trusted platform where 
               homeowners can easily find qualified professionals, and service providers can grow their 
               businesses with dignity and fair compensation.
             </p>
             
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h4 className="text-xl font-semibold text-foreground">For Homeowners</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <span>Verified, background-checked professionals</span>
+            <div className="grid md:grid-cols-2 gap-12">
+              <div className="space-y-5">
+                <h4 className="text-2xl font-bold text-foreground">For Homeowners</h4>
+                <ul className="space-y-4">
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Verified, background-checked professionals</span>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <span>Transparent pricing and reviews</span>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Transparent pricing and reviews</span>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <span>Secure payments and insurance coverage</span>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Secure payments and insurance coverage</span>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <span>24/7 customer support</span>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">24/7 customer support</span>
                   </li>
                 </ul>
               </div>
               
-              <div className="space-y-4">
-                <h4 className="text-xl font-semibold text-foreground">For Professionals</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Keep 90% of your earnings</span>
+              <div className="space-y-5">
+                <h4 className="text-2xl font-bold text-foreground">For Professionals</h4>
+                <ul className="space-y-4">
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Keep 90% of your earnings</span>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Flexible scheduling and job selection</span>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Flexible scheduling and job selection</span>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Marketing and business tools</span>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Marketing and business tools</span>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Guaranteed payments</span>
+                  <li className="flex items-start space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0"></div>
+                    <span className="text-gray-700 font-medium">Guaranteed payments</span>
                   </li>
                 </ul>
               </div>
@@ -123,19 +124,19 @@ const AboutSection = () => {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center mt-16">
-          <h3 className="text-2xl font-bold text-foreground mb-4">
+        <div className="text-center mt-20">
+          <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4 leading-tight">
             Ready to Experience the Difference?
           </h3>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 mb-10 max-w-2xl mx-auto text-lg">
             Join thousands of satisfied customers and professionals who trust FixItNow 
             for all their home service needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg">
+            <Button size="lg" className="font-semibold shadow-lg hover:shadow-xl transition-shadow">
               Find a Professional
             </Button>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" className="border-gray-300 hover:border-primary hover:text-primary font-semibold">
               Become a Pro
             </Button>
           </div>

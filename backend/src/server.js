@@ -19,6 +19,8 @@ import forgotPasswordRoutes from './routes/forgotPassword.js';
 import reviewsRoutes from './routes/reviews.js';
 import favoritesRoutes from './routes/favorites.js';
 import paymentRoutes from './routes/payment.js';
+import jobStatusRoutes from './routes/jobStatus.js';
+import chatbotRoutes from './routes/chatbot.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -166,6 +168,8 @@ try {
   console.log('✅ User routes loaded');
   app.use('/api/jobs', jobRoutes);
   console.log('✅ Jobs routes loaded');
+  app.use('/api/job-status', jobStatusRoutes);
+  console.log('✅ Job status routes loaded');
   app.use('/api/professional', professionalRoutes);
   console.log('✅ Professional routes loaded');
   app.use('/api/professionals', professionalsRoutes);
@@ -184,6 +188,8 @@ try {
   console.log('✅ Favorites routes loaded');
   app.use('/api/payment', paymentRoutes);
   console.log('✅ Payment routes loaded');
+  app.use('/api/chatbot', chatbotRoutes);
+  console.log('✅ Chatbot routes loaded');
   console.log('🎉 All API routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading routes:', error);

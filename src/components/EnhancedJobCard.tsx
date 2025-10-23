@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,8 @@ import {
   Loader2,
   CreditCard,
   Star as StarIcon,
-  Eye
+  Eye,
+  Zap
 } from 'lucide-react';
 import { Job, api, PaymentMethod } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +34,8 @@ import { useRealTime } from '@/contexts/RealTimeContext';
 import JobStatusBadge from './JobStatusBadge';
 import { toast } from '@/components/ui/use-toast';
 import ProfessionalProfileDialog from './ProfessionalProfileDialog';
+import { JobTrackingTimeline } from '@/components/job';
+import { Download, Printer, FileText } from 'lucide-react';
 
 interface EnhancedJobCardProps {
   job: Job;
@@ -47,6 +51,7 @@ const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
   onJobCompleted
 }) => {
   // Hooks and state
+  const navigate = useNavigate();
   const { userType } = useAuth();
   const { updateJobStatus, sendMessage, refreshData } = useRealTime();
   
@@ -64,6 +69,8 @@ const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online');
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const [jobData, setJobData] = useState<Job>(job);
 
   // Show review dialog when job is completed and no rating exists
   useEffect(() => {
@@ -74,6 +81,51 @@ const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
       return () => clearTimeout(timer);
     }
   }, [job.status, job.rating, variant]);
+
+  const handleGenerateInvoice = async () => {
+    if (job.status !== 'completed') {
+      toast({
+        title: 'Error',
+        description: 'Invoice can only be generated for completed jobs',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeneratingInvoice(true);
+    try {
+      const response = await fetch(`/api/jobs/${job._id}/generate-invoice`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate invoice');
+      }
+
+      const data = await response.json();
+      setJobData(prev => ({
+        ...prev,
+        invoice: data.invoice
+      }));
+
+      toast({
+        title: 'Success',
+        description: 'Invoice generated successfully',
+      });
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to generate invoice',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingInvoice(false);
+    }
+  };
 
   const handleSubmitReview = async () => {
     if (!rating) return;
@@ -217,6 +269,16 @@ const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
       {showDetails && (
         <CardContent>
           <div className="space-y-6">
+            {/* Job Tracking Timeline */}
+            <div>
+              <JobTrackingTimeline 
+                currentStatus={job.status} 
+                statusHistory={job.statusHistory || []}
+              />
+            </div>
+
+            <Separator />
+
             {/* Job Information */}
             <div className="space-y-3">
               <h4 className="font-semibold text-base flex items-center gap-2">
@@ -376,6 +438,95 @@ const EnhancedJobCard: React.FC<EnhancedJobCardProps> = ({
                   <p className="text-xs text-muted-foreground mt-1">
                     Professionals in your area have been notified. You'll be updated once someone accepts your job.
                   </p>
+                </div>
+              </>
+            )}
+
+            {/* Invoice Section */}
+            {job.status === 'completed' && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Invoice
+                  </h4>
+                  {jobData.invoice ? (
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <p className="text-muted-foreground">Invoice Number</p>
+                          <p className="font-medium">{jobData.invoice.number}</p>
+                        </div>
+                        <div className="flex justify-between">
+                          <p className="text-muted-foreground">Date</p>
+                          <p className="font-medium">
+                            {new Date(jobData.invoice.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Invoice Items */}
+                      <div className="border-t pt-3 space-y-2">
+                        <p className="font-medium text-sm">Service Details</p>
+                        {jobData.invoice.items?.map((item, idx) => (
+                          <div key={idx} className="flex justify-between text-sm">
+                            <div className="flex-1">
+                              <p className="text-muted-foreground text-xs">{item.description}</p>
+                              <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">₹{item.total?.toFixed(2) || '0.00'}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Totals */}
+                      <div className="border-t pt-3 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <p className="text-muted-foreground">Subtotal</p>
+                          <p className="font-medium">₹{jobData.invoice.subtotal?.toFixed(2) || '0.00'}</p>
+                        </div>
+                        <div className="flex justify-between">
+                          <p className="text-muted-foreground">Tax (18% GST)</p>
+                          <p className="font-medium">₹{jobData.invoice.tax?.toFixed(2) || '0.00'}</p>
+                        </div>
+                        <div className="flex justify-between border-t pt-2">
+                          <p className="font-bold">Total Amount</p>
+                          <p className="font-bold text-lg">₹{jobData.invoice.total?.toFixed(2) || '0.00'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2">
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <Printer className="h-4 w-4" />
+                          Print
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                      <p className="text-sm text-muted-foreground">No invoice generated yet</p>
+                      <Button
+                        size="sm"
+                        onClick={handleGenerateInvoice}
+                        disabled={isGeneratingInvoice}
+                        className="gap-2"
+                      >
+                        {isGeneratingInvoice ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileText className="h-4 w-4" />
+                        )}
+                        Generate Invoice
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </>
             )}

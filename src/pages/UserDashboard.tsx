@@ -29,6 +29,7 @@ import EnhancedPaymentConfirmation from '@/components/EnhancedPaymentConfirmatio
 import AddressManager from '@/components/AddressManager';
 import ServiceCards from '@/components/ServiceCards';
 import Support from '@/components/Support';
+import Chatbot from '@/components/Chatbot';
 import { useRealTime } from '@/contexts/RealTimeContext';
 import { Loader2, Users } from 'lucide-react';
 import {
@@ -1511,6 +1512,9 @@ const UserDashboard = () => {
           }}
         />
       )}
+
+      {/* AI Chatbot */}
+      <Chatbot />
     </div>
   );
 };
