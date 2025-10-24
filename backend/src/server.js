@@ -21,6 +21,8 @@ import favoritesRoutes from './routes/favorites.js';
 import paymentRoutes from './routes/payment.js';
 import jobStatusRoutes from './routes/jobStatus.js';
 import chatbotRoutes from './routes/chatbot.js';
+import contactRoutes from './routes/contact.js';
+import emailVerificationRoutes from './routes/emailVerification.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Load environment variables
@@ -190,6 +192,10 @@ try {
   console.log('✅ Payment routes loaded');
   app.use('/api/chatbot', chatbotRoutes);
   console.log('✅ Chatbot routes loaded');
+  app.use('/api/contact', contactRoutes);
+  console.log('✅ Contact routes loaded');
+  app.use('/api/email-verification', emailVerificationRoutes);
+  console.log('✅ Email verification routes loaded');
   console.log('🎉 All API routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading routes:', error);

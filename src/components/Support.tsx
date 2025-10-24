@@ -168,20 +168,50 @@ const Support: React.FC<SupportProps> = ({ userType = 'user' }) => {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/contact/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          subject: contactForm.subject,
+          message: contactForm.message,
+          priority: contactForm.priority,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Message Sent!",
+          description: "Our support team will get back to you within 24 hours.",
+        });
+        setContactForm({
+          subject: '',
+          message: '',
+          email: '',
+          priority: 'normal'
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
       toast({
-        title: "Message Sent!",
-        description: "Our support team will get back to you within 24 hours.",
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
       });
-      setContactForm({
-        subject: '',
-        message: '',
-        email: '',
-        priority: 'normal'
-      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   const toggleFAQ = (index: number) => {
@@ -210,7 +240,7 @@ const Support: React.FC<SupportProps> = ({ userType = 'user' }) => {
               <Mail className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold mb-2">Email Support</h3>
-            <p className="text-sm text-muted-foreground mb-3">support@fixit.com</p>
+            <p className="text-sm text-muted-foreground mb-3">service.fixitnow@gmail.com</p>
             <Badge variant="secondary">24-48 hours response</Badge>
           </CardContent>
         </Card>

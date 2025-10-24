@@ -508,6 +508,30 @@ class ApiService {
     });
   }
 
+  // Email verification
+  async sendEmailVerificationOTP(): Promise<{ success: boolean; message: string }> {
+    return this.request('/email-verification/send-otp', {
+      method: 'POST',
+    });
+  }
+
+  async verifyEmailOTP(otp: string): Promise<{
+    success: boolean;
+    message: string;
+    data?: { user: User };
+  }> {
+    return this.request('/email-verification/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ otp }),
+    });
+  }
+
+  async resendEmailVerificationOTP(): Promise<{ success: boolean; message: string }> {
+    return this.request('/email-verification/resend-otp', {
+      method: 'POST',
+    });
+  }
+
   async getDashboardStats(): Promise<{
     success: boolean;
     data: { stats: DashboardStats };

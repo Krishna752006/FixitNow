@@ -2,65 +2,36 @@ import express from 'express';
 import { body } from 'express-validator';
 import User from '../models/User.js';
 import Professional from '../models/Professional.js';
+import { authenticate } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 import { sendNotificationEmail } from '../services/emailService.js';
-import crypto from 'crypto';
 
 const router = express.Router();
 
-// In-memory OTP storage (in production, use Redis or database)
-const otpStore = new Map();
+// In-memory OTP storage for email verification
+const emailVerificationStore = new Map();
 
-// OTP expiry time (5 minutes)
-const OTP_EXPIRY = 5 * 60 * 1000;
+// OTP expiry time (10 minutes)
+const OTP_EXPIRY = 10 * 60 * 1000;
 
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Email validation
-const emailValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email address'),
-];
-
-// OTP verification validation
-const otpValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email address'),
-  body('otp')
-    .isLength({ min: 6, max: 6 })
-    .withMessage('OTP must be 6 digits'),
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
-];
-
-// @route   POST /api/forgot-password/send-otp
-// @desc    Send OTP to user's email
-// @access  Public
-router.post('/send-otp', emailValidation, validateRequest, async (req, res) => {
+// @route   POST /api/email-verification/send-otp
+// @desc    Send OTP to user's email for verification
+// @access  Private
+router.post('/send-otp', authenticate, async (req, res) => {
   try {
-    const { email } = req.body;
+    const user = req.user;
+    const email = user.email;
 
-    // Check if user exists in either User or Professional collection
-    let user = await User.findOne({ email });
-    let userType = 'user';
-
-    if (!user) {
-      user = await Professional.findOne({ email });
-      userType = 'professional';
-    }
-
-    if (!user) {
-      return res.status(404).json({
+    // Check if email is already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
         success: false,
-        message: 'Email does not exist in our records',
+        message: 'Email is already verified',
       });
     }
 
@@ -68,11 +39,11 @@ router.post('/send-otp', emailValidation, validateRequest, async (req, res) => {
     const otp = generateOTP();
     const expiresAt = Date.now() + OTP_EXPIRY;
 
-    // Store OTP with email as key
-    otpStore.set(email, {
+    // Store OTP
+    emailVerificationStore.set(email, {
       otp,
       expiresAt,
-      userType,
+      userId: user._id,
       attempts: 0,
     });
 
@@ -80,12 +51,12 @@ router.post('/send-otp', emailValidation, validateRequest, async (req, res) => {
     try {
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333; text-align: center;">Password Reset OTP</h2>
+          <h2 style="color: #333; text-align: center;">Email Verification OTP</h2>
           
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-            <p style="color: #666; margin-bottom: 15px;">Your One-Time Password (OTP) for password reset is:</p>
+            <p style="color: #666; margin-bottom: 15px;">Your One-Time Password (OTP) for email verification is:</p>
             <h1 style="color: #ea580c; font-size: 48px; letter-spacing: 5px; margin: 0;">${otp}</h1>
-            <p style="color: #999; font-size: 12px; margin-top: 15px;">This OTP will expire in 5 minutes</p>
+            <p style="color: #999; font-size: 12px; margin-top: 15px;">This OTP will expire in 10 minutes</p>
           </div>
 
           <div style="background-color: #fff3e0; border-left: 4px solid #ea580c; padding: 15px; margin: 20px 0;">
@@ -107,13 +78,13 @@ router.post('/send-otp', emailValidation, validateRequest, async (req, res) => {
 
       await sendNotificationEmail(
         email,
-        'Password Reset OTP - FixItNow',
+        'Email Verification OTP - FixItNow',
         emailHtml
       );
 
-      console.log(`OTP sent to ${email}`);
+      console.log(`✅ Email verification OTP sent to ${email}`);
     } catch (emailError) {
-      console.error('Error sending OTP email:', emailError);
+      console.error('Error sending verification email:', emailError);
       // Continue even if email fails - OTP is still stored
     }
 
@@ -123,7 +94,7 @@ router.post('/send-otp', emailValidation, validateRequest, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Send OTP error:', error);
+    console.error('Send verification OTP error:', error);
     res.status(500).json({
       success: false,
       message: 'Error sending OTP',
@@ -131,15 +102,23 @@ router.post('/send-otp', emailValidation, validateRequest, async (req, res) => {
   }
 });
 
-// @route   POST /api/forgot-password/verify-otp
-// @desc    Verify OTP and reset password
-// @access  Public
-router.post('/verify-otp', otpValidation, validateRequest, async (req, res) => {
+// @route   POST /api/email-verification/verify-otp
+// @desc    Verify OTP and mark email as verified
+// @access  Private
+router.post('/verify-otp', [
+  authenticate,
+  body('otp')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('OTP must be 6 digits'),
+  validateRequest,
+], async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { otp } = req.body;
+    const user = req.user;
+    const email = user.email;
 
     // Check if OTP exists for this email
-    const otpData = otpStore.get(email);
+    const otpData = emailVerificationStore.get(email);
 
     if (!otpData) {
       return res.status(400).json({
@@ -150,7 +129,7 @@ router.post('/verify-otp', otpValidation, validateRequest, async (req, res) => {
 
     // Check if OTP is expired
     if (Date.now() > otpData.expiresAt) {
-      otpStore.delete(email);
+      emailVerificationStore.delete(email);
       return res.status(400).json({
         success: false,
         message: 'OTP has expired. Please request a new OTP.',
@@ -159,7 +138,7 @@ router.post('/verify-otp', otpValidation, validateRequest, async (req, res) => {
 
     // Check if too many attempts
     if (otpData.attempts >= 3) {
-      otpStore.delete(email);
+      emailVerificationStore.delete(email);
       return res.status(400).json({
         success: false,
         message: 'Too many failed attempts. Please request a new OTP.',
@@ -169,66 +148,60 @@ router.post('/verify-otp', otpValidation, validateRequest, async (req, res) => {
     // Verify OTP
     if (otpData.otp !== otp) {
       otpData.attempts += 1;
-      otpStore.set(email, otpData);
+      emailVerificationStore.set(email, otpData);
       return res.status(400).json({
         success: false,
         message: `Invalid OTP. ${3 - otpData.attempts} attempts remaining.`,
       });
     }
 
-    // OTP is valid, update password
-    const Model = otpData.userType === 'user' ? User : Professional;
-    const user = await Model.findOne({ email });
+    // OTP is valid, mark email as verified
+    const Model = user.userType === 'professional' ? Professional : User;
+    const updatedUser = await Model.findByIdAndUpdate(
+      user._id,
+      { isEmailVerified: true },
+      { new: true }
+    ).select('-password');
 
-    if (!user) {
-      otpStore.delete(email);
+    if (!updatedUser) {
+      emailVerificationStore.delete(email);
       return res.status(404).json({
         success: false,
         message: 'User not found',
       });
     }
 
-    // Update password (will be hashed by pre-save hook)
-    user.password = newPassword;
-    await user.save();
-
     // Clear OTP from store
-    otpStore.delete(email);
+    emailVerificationStore.delete(email);
 
     res.json({
       success: true,
-      message: 'Password reset successfully. You can now login with your new password.',
+      message: 'Email verified successfully!',
+      data: { user: updatedUser },
     });
 
   } catch (error) {
     console.error('Verify OTP error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error verifying OTP and resetting password',
+      message: 'Error verifying OTP',
     });
   }
 });
 
-// @route   POST /api/forgot-password/resend-otp
+// @route   POST /api/email-verification/resend-otp
 // @desc    Resend OTP to user's email
-// @access  Public
-router.post('/resend-otp', emailValidation, validateRequest, async (req, res) => {
+// @access  Private
+router.post('/resend-otp', authenticate, async (req, res) => {
   try {
-    const { email } = req.body;
+    const user = req.user;
+    const email = user.email;
 
-    // Check if user exists
-    let user = await User.findOne({ email });
-    let userType = 'user';
-
-    if (!user) {
-      user = await Professional.findOne({ email });
-      userType = 'professional';
-    }
-
-    if (!user) {
-      return res.status(404).json({
+    // Check if email is already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
         success: false,
-        message: 'Email does not exist in our records',
+        message: 'Email is already verified',
       });
     }
 
@@ -237,10 +210,10 @@ router.post('/resend-otp', emailValidation, validateRequest, async (req, res) =>
     const expiresAt = Date.now() + OTP_EXPIRY;
 
     // Store new OTP
-    otpStore.set(email, {
+    emailVerificationStore.set(email, {
       otp,
       expiresAt,
-      userType,
+      userId: user._id,
       attempts: 0,
     });
 
@@ -248,12 +221,12 @@ router.post('/resend-otp', emailValidation, validateRequest, async (req, res) =>
     try {
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333; text-align: center;">Password Reset OTP (Resent)</h2>
+          <h2 style="color: #333; text-align: center;">Email Verification OTP (Resent)</h2>
           
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-            <p style="color: #666; margin-bottom: 15px;">Your One-Time Password (OTP) for password reset is:</p>
+            <p style="color: #666; margin-bottom: 15px;">Your One-Time Password (OTP) for email verification is:</p>
             <h1 style="color: #ea580c; font-size: 48px; letter-spacing: 5px; margin: 0;">${otp}</h1>
-            <p style="color: #999; font-size: 12px; margin-top: 15px;">This OTP will expire in 5 minutes</p>
+            <p style="color: #999; font-size: 12px; margin-top: 15px;">This OTP will expire in 10 minutes</p>
           </div>
 
           <div style="background-color: #fff3e0; border-left: 4px solid #ea580c; padding: 15px; margin: 20px 0;">
@@ -275,13 +248,13 @@ router.post('/resend-otp', emailValidation, validateRequest, async (req, res) =>
 
       await sendNotificationEmail(
         email,
-        'Password Reset OTP (Resent) - FixItNow',
+        'Email Verification OTP (Resent) - FixItNow',
         emailHtml
       );
 
-      console.log(`OTP resent to ${email}`);
+      console.log(`✅ Email verification OTP resent to ${email}`);
     } catch (emailError) {
-      console.error('Error sending resent OTP email:', emailError);
+      console.error('Error sending resent verification email:', emailError);
       // Continue even if email fails - OTP is still stored
     }
 
@@ -291,7 +264,7 @@ router.post('/resend-otp', emailValidation, validateRequest, async (req, res) =>
     });
 
   } catch (error) {
-    console.error('Resend OTP error:', error);
+    console.error('Resend verification OTP error:', error);
     res.status(500).json({
       success: false,
       message: 'Error resending OTP',

@@ -77,16 +77,6 @@ const ForgotPassword = () => {
             return prev - 1;
           });
         }, 1000);
-        
-        // In development, show OTP in console
-        if (data.otp) {
-          console.log('Development OTP:', data.otp);
-          toast({
-            title: "Development Mode",
-            description: `Your OTP is: ${data.otp}`,
-            duration: 10000,
-          });
-        }
       } else {
         toast({
           title: "Error",
@@ -139,15 +129,6 @@ const ForgotPassword = () => {
             return prev - 1;
           });
         }, 1000);
-        
-        if (data.otp) {
-          console.log('Development OTP:', data.otp);
-          toast({
-            title: "Development Mode",
-            description: `Your OTP is: ${data.otp}`,
-            duration: 10000,
-          });
-        }
       } else {
         toast({
           title: "Error",
