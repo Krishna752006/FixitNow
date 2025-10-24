@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-professional.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -26,15 +29,19 @@ const HeroSection = () => {
       <div className="relative z-20 container mx-auto px-6 text-center">
         <div className="max-w-4xl mx-auto">
           {/* Trust Badge */}
-          <div className="inline-flex items-center space-x-2 bg-white/15 backdrop-blur-md rounded-full px-6 py-3 mb-8 animate-fade-in border border-white/20">
-            <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
+          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-xl rounded-full px-6 py-3 mb-8 animate-fade-in border border-white/30 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center space-x-1">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-4 h-4 text-yellow-300 fill-yellow-300" />
+              ))}
+            </div>
             <span className="text-white text-sm font-semibold">Trusted by 10,000+ homeowners</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6 animate-slide-up leading-tight">
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6 animate-slide-up leading-tight drop-shadow-lg">
             Your Home,{" "}
-            <span className="bg-gradient-to-r from-yellow-300 via-accent to-secondary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-300 via-accent to-secondary bg-clip-text text-transparent animate-pulse">
               Fixed.
             </span>
             <br />
@@ -49,7 +56,7 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <Button size="xl" className="group font-semibold shadow-xl hover:shadow-2xl transition-all px-8">
+            <Button size="xl" className="group font-semibold shadow-xl hover:shadow-2xl transition-all px-8" onClick={() => navigate('/signup/user')}>
               Find a Service
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -62,17 +69,23 @@ const HeroSection = () => {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-16 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">24/7</div>
-              <div className="text-white/80">Available Support</div>
+            <div className="text-center group">
+              <div className="inline-block bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-4 group-hover:bg-white/20 transition-all transform group-hover:scale-110">
+                <div className="text-4xl font-bold bg-gradient-to-r from-yellow-300 to-accent bg-clip-text text-transparent">24/7</div>
+              </div>
+              <div className="text-white/90 font-semibold">Available Support</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">5 Min</div>
-              <div className="text-white/80">Average Response</div>
+            <div className="text-center group">
+              <div className="inline-block bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-4 group-hover:bg-white/20 transition-all transform group-hover:scale-110">
+                <div className="text-4xl font-bold bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">5 Min</div>
+              </div>
+              <div className="text-white/90 font-semibold">Average Response</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">100%</div>
-              <div className="text-white/80">Satisfaction Guaranteed</div>
+            <div className="text-center group">
+              <div className="inline-block bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-4 group-hover:bg-white/20 transition-all transform group-hover:scale-110">
+                <div className="text-4xl font-bold bg-gradient-to-r from-secondary to-yellow-300 bg-clip-text text-transparent">100%</div>
+              </div>
+              <div className="text-white/90 font-semibold">Satisfaction Guaranteed</div>
             </div>
           </div>
         </div>

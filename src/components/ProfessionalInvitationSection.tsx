@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, DollarSign, Calendar, Users, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProfessionalInvitationSection = () => {
+  const navigate = useNavigate();
   const benefits = [
     {
       icon: DollarSign,
@@ -58,13 +60,13 @@ const ProfessionalInvitationSection = () => {
               {benefits.map((benefit, index) => {
                 const IconComponent = benefit.icon;
                 return (
-                  <div key={index} className="flex items-start space-x-4 group">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 group-hover:from-primary/20 group-hover:to-accent/20 transition-colors shadow-md">
-                      <IconComponent className="w-6 h-6 text-primary" />
+                  <div key={index} className="flex items-start space-x-4 group p-4 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 transition-all transform hover:scale-105 hover:shadow-lg border border-primary/10">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all transform group-hover:scale-110">
+                      <IconComponent className="w-7 h-7 text-white" />
                     </div>
                     <div>
                       <h3 className="font-bold text-foreground mb-1 text-lg">{benefit.title}</h3>
-                      <p className="text-gray-600 text-sm font-medium">{benefit.description}</p>
+                      <p className="text-gray-600 text-sm font-medium leading-relaxed">{benefit.description}</p>
                     </div>
                   </div>
                 );
@@ -73,11 +75,11 @@ const ProfessionalInvitationSection = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="group font-semibold shadow-lg hover:shadow-xl transition-shadow">
+              <Button size="lg" className="group font-semibold shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 px-8" onClick={() => navigate('/signup/professional')}>
                 Become a Pro
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" size="lg" className="border-gray-300 hover:border-primary hover:text-primary font-semibold">
+              <Button variant="outline" size="lg" className="border-2 border-primary hover:bg-primary hover:text-white font-semibold transition-all transform hover:scale-105">
                 Learn More
               </Button>
             </div>

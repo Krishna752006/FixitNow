@@ -32,12 +32,27 @@ const FinancialManagement: React.FC = () => {
     fetchReport();
   }, [page, startDate, endDate]);
 
+  // Reset page to 1 when dates change
+  useEffect(() => {
+    setPage(1);
+  }, [startDate, endDate]);
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
+  };
+
   const fetchTransactions = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
 
       const response = await api.get(`/admin/financial/transactions?${params}`);
       if (response.success) {
@@ -108,7 +123,7 @@ const FinancialManagement: React.FC = () => {
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={handleStartDateChange}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -116,7 +131,7 @@ const FinancialManagement: React.FC = () => {
           <input
             type="date"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={handleEndDateChange}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>

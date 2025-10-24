@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Shield, Users, Clock, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AboutSection = () => {
+  const navigate = useNavigate();
   const stats = [
     {
       icon: Users,
@@ -133,10 +135,10 @@ const AboutSection = () => {
             for all their home service needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="font-semibold shadow-lg hover:shadow-xl transition-shadow">
+            <Button size="lg" className="font-semibold shadow-lg hover:shadow-xl transition-shadow" onClick={() => navigate('/login/user')}>
               Find a Professional
             </Button>
-            <Button variant="outline" size="lg" className="border-gray-300 hover:border-primary hover:text-primary font-semibold">
+            <Button variant="outline" size="lg" className="border-gray-300 hover:border-primary hover:text-primary font-semibold" onClick={() => navigate('/signup/professional')}>
               Become a Pro
             </Button>
           </div>
