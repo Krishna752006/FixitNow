@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { api, Job } from '@/services/api';
-import { CreditCard, Wallet, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { CreditCard, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface PaymentDialogProps {
   open: boolean;
@@ -27,7 +27,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   job,
   onPaymentSuccess,
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'online'>('online');
+  const [paymentMethod, setPaymentMethod] = useState<'online'>('online');
   const [isProcessing, setIsProcessing] = useState(false);
   const [razorpayKey, setRazorpayKey] = useState<string>('');
   const [showPaymentLinkFallback, setShowPaymentLinkFallback] = useState(false);
@@ -314,53 +314,9 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   };
 
 
-  const handleCashPayment = async () => {
-    if (!job) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      // For cash payment, we need to use a different API endpoint
-      // Since updateJob doesn't support paymentStatus, we'll use processPayment with a dummy method
-      const payAmount = job.finalPrice ?? job.budget?.max ?? job.budget?.min ?? 0;
-      
-      if (payAmount <= 0) {
-        toast({
-          title: "Payment Error",
-          description: "Invalid payment amount. Please contact support.",
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-        return;
-      }
-
-      // Create a dummy payment method for cash (this would need backend support)
-      // For now, we'll just show success and let the user handle it manually
-      toast({
-        title: "Cash Payment Confirmed",
-        description: "Please ensure you have paid the professional directly. Payment recorded as cash.",
-      });
-      
-      onPaymentSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Cash payment error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to record cash payment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handlePayment = () => {
-    if (paymentMethod === 'online') {
-      handleOnlinePayment();
-    } else {
-      handleCashPayment();
-    }
+    handleOnlinePayment();
   };
 
   if (!job) return null;
@@ -423,42 +379,6 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             </CardContent>
           </Card>
 
-          {/* Payment Method Selection */}
-          <div className="space-y-3">
-            <h5 className="font-medium">Select Payment Method</h5>
-            <div className="space-y-2">
-              <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="online"
-                  checked={paymentMethod === 'online'}
-                  onChange={(e) => setPaymentMethod(e.target.value as 'online')}
-                />
-                <CreditCard className="h-5 w-5 text-blue-600" />
-                <div className="flex-1">
-                  <span className="font-medium">Online Payment</span>
-                  <p className="text-sm text-muted-foreground">Pay securely with card/UPI via Razorpay</p>
-                </div>
-                <Badge variant="secondary">Recommended</Badge>
-              </label>
-              
-              <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="cash"
-                  checked={paymentMethod === 'cash'}
-                  onChange={(e) => setPaymentMethod(e.target.value as 'cash')}
-                />
-                <Wallet className="h-5 w-5 text-green-600" />
-                <div className="flex-1">
-                  <span className="font-medium">Cash Payment</span>
-                  <p className="text-sm text-muted-foreground">Pay directly to the professional</p>
-                </div>
-              </label>
-            </div>
-          </div>
 
           {/* Payment Link Fallback Notice */}
           {showPaymentLinkFallback && (
@@ -543,12 +463,8 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                   </>
                 ) : (
                   <>
-                    {paymentMethod === 'online' ? (
-                      <CreditCard className="h-4 w-4 mr-2" />
-                    ) : (
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                    )}
-                    {paymentMethod === 'online' ? 'Pay Now' : 'Confirm Cash Payment'}
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Pay Now
                   </>
                 )}
               </Button>

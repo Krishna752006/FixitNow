@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { api } from '../../services/api';
 
 interface Transaction {
@@ -66,10 +66,6 @@ const FinancialManagement: React.FC = () => {
     }
   };
 
-  const handleGenerateReport = () => {
-    fetchReport();
-  };
-
   const totalPages = Math.ceil(total / limit);
 
   return (
@@ -123,13 +119,6 @@ const FinancialManagement: React.FC = () => {
             onChange={(e) => setEndDate(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <button
-            onClick={handleGenerateReport}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            <Download size={20} />
-            <span>Generate Report</span>
-          </button>
         </div>
       </div>
 

@@ -4,10 +4,9 @@ import UserManagement from '../components/admin/UserManagement';
 import JobMonitoring from '../components/admin/JobMonitoring';
 import ServiceConfiguration from '../components/admin/ServiceConfiguration';
 import FinancialManagement from '../components/admin/FinancialManagement';
-import Analytics from '../components/admin/Analytics';
 import { api } from '../services/api';
 
-type TabType = 'dashboard' | 'users' | 'jobs' | 'services' | 'financial' | 'analytics';
+type TabType = 'dashboard' | 'users' | 'jobs' | 'services' | 'financial';
 
 interface DashboardStats {
   totalUsers: number;
@@ -42,7 +41,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    window.location.href = '/login/admin';
   };
 
   const StatCard = ({ icon: Icon, title, value, color }: any) => (
@@ -84,7 +83,6 @@ const AdminDashboard: React.FC = () => {
             { id: 'jobs', label: 'Jobs', icon: Briefcase },
             { id: 'services', label: 'Services', icon: 'settings' },
             { id: 'financial', label: 'Financial', icon: DollarSign },
-            { id: 'analytics', label: 'Analytics', icon: 'chart' },
           ].map((item) => (
             <button
               key={item.id}
@@ -260,9 +258,6 @@ const AdminDashboard: React.FC = () => {
 
           {/* Financial Tab */}
           {activeTab === 'financial' && <FinancialManagement />}
-
-          {/* Analytics Tab */}
-          {activeTab === 'analytics' && <Analytics />}
         </div>
       </div>
     </div>
