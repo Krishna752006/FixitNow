@@ -545,7 +545,7 @@ const UserDashboard = () => {
               </div>
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1 hover-glow">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                {user.isEmailVerified ? 'Verified User' : 'Unverified User'}
+                {user.isVerified ? 'Verified User' : 'Unverified User'}
               </Badge>
             </div>
             <div className="flex items-center gap-3">
@@ -1499,7 +1499,7 @@ const UserDashboard = () => {
         <ScheduleJobModal
           category={selectedService?.category || selectedCategory || 'Plumbing'}
           serviceName={selectedService?.title}
-          servicePrice={selectedService?.price ? parseFloat(selectedService.price.replace('$', '')) : undefined}
+          servicePrice={selectedService?.price ? parseFloat(selectedService.price.replace('₹', '')) : undefined}
           serviceDuration={selectedService?.duration}
           user={user}
           onJobScheduled={() => {

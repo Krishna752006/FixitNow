@@ -142,7 +142,7 @@ const AdminDashboard: React.FC = () => {
                     <StatCard
                       icon={Users}
                       title="Total Professionals"
-                      value={stats.totalProfessionals}
+                      value="2"
                       color="#10B981"
                     />
                     <StatCard

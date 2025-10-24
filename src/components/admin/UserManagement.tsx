@@ -71,23 +71,57 @@ const UserManagement: React.FC = () => {
 
   const handleSuspend = async (userId: string) => {
     try {
+      // Optimistically update the UI
+      setUsers(users.map(user => 
+        user._id === userId ? { ...user, isActive: false } : user
+      ));
+
       const response = await api.patch(`/admin/users/${userId}/suspend`);
       if (response.success) {
-        fetchUsers();
+        // Update with the confirmed response data
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, isActive: response.data.isActive } : user
+        ));
+      } else {
+        // Revert on failure
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, isActive: true } : user
+        ));
       }
     } catch (error) {
       console.error('Error suspending user:', error);
+      // Revert on error
+      setUsers(users.map(user => 
+        user._id === userId ? { ...user, isActive: true } : user
+      ));
     }
   };
 
   const handleReactivate = async (userId: string) => {
     try {
+      // Optimistically update the UI
+      setUsers(users.map(user => 
+        user._id === userId ? { ...user, isActive: true } : user
+      ));
+
       const response = await api.patch(`/admin/users/${userId}/reactivate`);
       if (response.success) {
-        fetchUsers();
+        // Update with the confirmed response data
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, isActive: response.data.isActive } : user
+        ));
+      } else {
+        // Revert on failure
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, isActive: false } : user
+        ));
       }
     } catch (error) {
       console.error('Error reactivating user:', error);
+      // Revert on error
+      setUsers(users.map(user => 
+        user._id === userId ? { ...user, isActive: false } : user
+      ));
     }
   };
 

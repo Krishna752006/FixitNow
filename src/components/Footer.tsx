@@ -1,7 +1,59 @@
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, Wrench } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
+  // Map footer links to their routes
+  const getLinkRoute = (category: string, link: string): string => {
+    const linkMap: { [key: string]: { [key: string]: string } } = {
+      "For Customers": {
+        "How It Works": "/#how-it-works",
+        "Browse Services": "/login/user",
+        "Book a Service": "/login/user",
+        "Emergency Services": "/login/user",
+        "Customer Support": "/#contact"
+      },
+      "For Professionals": {
+        "Join FixItNow": "/signup/professional",
+        "Professional Resources": "/login/professional",
+        "Earning Calculator": "/login/professional",
+        "Pro Dashboard": "/login/professional",
+        "Support Center": "/#contact"
+      },
+      "Company": {
+        "About Us": "/#about",
+        "Careers": "/#contact",
+        "Press": "/#contact",
+        "Blog": "/#contact",
+        "Contact": "/#contact"
+      },
+      "Legal": {
+        "Terms of Service": "/#contact",
+        "Privacy Policy": "/#contact",
+        "Cookie Policy": "/#contact",
+        "Insurance": "/#contact",
+        "Safety": "/#contact"
+      }
+    };
+    return linkMap[category]?.[link] || "#";
+  };
+
+  const handleLinkClick = (route: string) => {
+    if (route.startsWith("/#")) {
+      // Handle anchor links
+      const sectionId = route.substring(2);
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      // Handle route navigation
+      navigate(route);
+    }
+  };
+
   const footerLinks = {
     "For Customers": [
       "How It Works",
@@ -83,16 +135,19 @@ const Footer = () => {
             <div key={category}>
               <h3 className="font-semibold text-white mb-6 text-sm uppercase tracking-wide">{category}</h3>
               <ul className="space-y-3">
-                {links.map((link) => (
-                  <li key={link}>
-                    <a 
-                      href="#" 
-                      className="text-slate-400 hover:text-primary transition-colors text-sm font-medium"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
+                {links.map((link) => {
+                  const route = getLinkRoute(category, link);
+                  return (
+                    <li key={link}>
+                      <button
+                        onClick={() => handleLinkClick(route)}
+                        className="text-slate-400 hover:text-primary transition-colors text-sm font-medium text-left"
+                      >
+                        {link}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
