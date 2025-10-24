@@ -85,7 +85,12 @@ router.post('/send-otp', authenticate, async (req, res) => {
       console.log(`✅ Email verification OTP sent to ${email}`);
     } catch (emailError) {
       console.error('Error sending verification email:', emailError);
-      // Continue even if email fails - OTP is still stored
+      // Return error to user instead of silently failing
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send OTP email. Please check your email configuration or try again later.',
+        error: emailError.message,
+      });
     }
 
     res.json({
@@ -255,7 +260,12 @@ router.post('/resend-otp', authenticate, async (req, res) => {
       console.log(`✅ Email verification OTP resent to ${email}`);
     } catch (emailError) {
       console.error('Error sending resent verification email:', emailError);
-      // Continue even if email fails - OTP is still stored
+      // Return error to user instead of silently failing
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to resend OTP email. Please check your email configuration or try again later.',
+        error: emailError.message,
+      });
     }
 
     res.json({

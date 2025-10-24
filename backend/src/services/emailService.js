@@ -1,31 +1,53 @@
 import nodemailer from 'nodemailer';
 import environment from '../config/environment.js';
 
+// Check if email credentials are configured
+const emailUser = process.env.EMAIL_USER || environment.EMAIL_USER;
+const emailPass = process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || environment.EMAIL_PASS;
+
+const isEmailConfigured = emailUser && emailPass;
+
+if (!isEmailConfigured) {
+  console.warn('⚠️  Email credentials not configured. OTP and notification emails will not be sent.');
+  console.warn('📝 Please set EMAIL_USER and EMAIL_PASS (or EMAIL_PASSWORD) environment variables.');
+}
+
 // Create transporter for Gmail
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || environment.EMAIL_USER || 'service.fixitnow@gmail.com',
-    pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || environment.EMAIL_PASS,
+    user: emailUser || 'service.fixitnow@gmail.com',
+    pass: emailPass || '',
   },
 });
 
 // Verify transporter connection
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Email service error:', error.message);
-  } else if (success) {
-    console.log('✅ Email service is ready to send emails');
-  }
-});
+if (isEmailConfigured) {
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('❌ Email service error:', error.message);
+    } else if (success) {
+      console.log('✅ Email service is ready to send emails');
+    }
+  });
+} else {
+  console.warn('⚠️  Email service verification skipped - credentials not configured');
+}
 
 export const sendContactEmail = async (contactData) => {
   try {
+    // Check if email is configured
+    if (!isEmailConfigured) {
+      const errorMsg = 'Email service is not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.';
+      console.error('❌', errorMsg);
+      throw new Error(errorMsg);
+    }
+
     const { subject, message, email, priority, userType, userName } = contactData;
 
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'service.fixitnow@gmail.com',
-      to: 'service.fixitnow@gmail.com',
+      from: process.env.EMAIL_USER || environment.EMAIL_USER,
+      to: process.env.EMAIL_USER || environment.EMAIL_USER,
       subject: `[${priority.toUpperCase()}] ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -54,18 +76,27 @@ export const sendContactEmail = async (contactData) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Support email sent to:', email, '- Message ID:', info.messageId);
+    console.log('✅ Support email sent from:', email, '- Message ID:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Error sending support email to', email, ':', error.message);
+    console.error('❌ Error sending support email from', email, ':', error.message);
     throw error;
   }
 };
 
+export const isEmailServiceConfigured = () => isEmailConfigured;
+
 export const sendNotificationEmail = async (to, subject, htmlContent) => {
   try {
+    // Check if email is configured
+    if (!isEmailConfigured) {
+      const errorMsg = 'Email service is not configured. Please set EMAIL_USER and EMAIL_PASS environment variables.';
+      console.error('❌', errorMsg);
+      throw new Error(errorMsg);
+    }
+
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'service.fixitnow@gmail.com',
+      from: process.env.EMAIL_USER || environment.EMAIL_USER,
       to,
       subject,
       html: htmlContent,

@@ -1,7 +1,7 @@
 import ScheduleJobModal from '@/components/ScheduleJobModal';
 import { CashPayment } from '@/components/CashPayment';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea'; // Add this line
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea'; 
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +57,8 @@ import {
   Lightbulb,
   LogOut,
   Settings,
-  HelpCircle
+  HelpCircle,
+  Mail
 } from 'lucide-react';
 
 const UserDashboard = () => {
@@ -107,6 +108,7 @@ const UserDashboard = () => {
   const [showEnhancedPaymentDialog, setShowEnhancedPaymentDialog] = useState(false);
   const [selectedJobForEnhancedPayment, setSelectedJobForEnhancedPayment] = useState<Job | null>(null);
   const [autoAssignEnabled, setAutoAssignEnabled] = useState(false);
+  const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false);
 
   const completedJobsWithReviews = jobs.filter(j => j.status === 'completed' && typeof j.rating === 'number');
   const completedJobsPendingReview = jobs.filter(j => j.status === 'completed' && (j.rating === undefined || j.rating === null));
@@ -924,7 +926,7 @@ const UserDashboard = () => {
                     {(() => {
                       const filteredJobs = jobs.filter(j => j.status === 'pending');
                       const jobElements = [];
-                      for (let i = 0; i < filteredJobs.length; i++) {
+                      for (let i = 0; i <filteredJobs.length; i++) {
                         jobElements.push(<EnhancedJobCard key={filteredJobs[i]._id} job={filteredJobs[i]} variant="user" />);
                       }
                       return jobElements;
@@ -1226,13 +1228,8 @@ const UserDashboard = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Email Address</label>
                     <div className="p-3 bg-muted/50 rounded-lg border">
-                      <p className="font-medium">{user.email}</p>
-                      {user.isEmailVerified && (
-                        <p className="text-xs text-success mt-1 flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Verified
-                        </p>
-                      )}
+                      <p className="font-medium text-muted-foreground">{user.email}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -1262,7 +1259,16 @@ const UserDashboard = () => {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 flex-wrap">
+                    {!user.isEmailVerified && (
+                      <Button
+                        onClick={() => setShowEmailVerificationDialog(true)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Verify Email
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => setActiveTab('edit-profile')}
@@ -1279,7 +1285,6 @@ const UserDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Account Statistics */}
             <Card>
               <CardHeader>
                 <CardTitle>Account Statistics</CardTitle>
@@ -1309,7 +1314,6 @@ const UserDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Saved Addresses Section */}
             <AddressManager />
           </TabsContent>
 
@@ -1512,6 +1516,41 @@ const UserDashboard = () => {
           }}
         />
       )}
+
+      {/* Email Verification Dialog */}
+      <Dialog open={showEmailVerificationDialog} onOpenChange={setShowEmailVerificationDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Verify Email Address
+            </DialogTitle>
+            <DialogDescription>
+              Enter the 6-digit verification code sent to your email
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900">
+                <strong>Email:</strong> {user?.email}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Verification Code</label>
+              <input
+                type="text"
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+                className="mt-2 w-full p-2 border rounded-lg text-center text-2xl tracking-widest"
+              />
+            </div>
+            <Button className="w-full">
+              Verify Email
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Chatbot */}
       <Chatbot />
